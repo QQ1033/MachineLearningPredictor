@@ -3,83 +3,67 @@ import csv
 import numpy as np
 from sklearn.neural_network import MLPClassifier
 
-# TODO complete these functions
-
 def func1(s):
     return len(s.split()) / (len(s) - s.count(' '))
 
 def func2(s):
-    count  = 0
+    count = 0
     for char in s:
-        if (s.isupper()):
+        if (s.upper()):
             count += 1
 
     return count
 
-
 def func3(s):
-    if (s.contains('%')):
-        return 1.0
-
-    return 0.0
+    return int('%' in s)
 
 def func4(s):
-    if (s.split.contains("Dow Jones")):
-        return 10.0
-    if (s.split.contains("DJIA")):
-        return 10.0
-    if (s.split.contains("DJIA")):
+    s = s.split()
+    if 'Dow Jones' in s or 'DJIA' in s:
         return 10.0
 
     return 0.0
-
 
 def func5(s):
-    if (s.split.contains("Conflict")):
-        return -5.0
-    if (s.split.contains("War")):
+    s = s.split()
+    if 'Conflict' in s or 'War' in s:
         return -5.0
 
     return 0.0
-
 
 def func6(s):
     count = 0
     for char in s:
-        if (s.isdigit()):
+        if char.isdigit():
             count += 1
 
-    return count/ (len(s) - s.count(' '))
-
-
+    return count / (len(s) - s.count(' '))
 
 def func7(s):
     count = 0
-    for string in s:
-        if (string.tolowercase.contains("politics") or string.tolowercase.contains("politician")
-                or string.tolowercase.contains("leader") or string.tolowercase.contains("president")):
+    for word in s.split():
+        word = word.lower()
+        if ('politics' in word or 'politician' in word
+                or 'leader' in word or 'president' in word):
             count += 1
 
     return count
 
-
 def func8(s):
-    if (s.contains('?')):
-        return True
-
-    return False
+    return int('?' in s)
 
 def func9(s):
     count = 0
-    for string in s:
-        if (string.tolowercase.contains("and") or string.tolowercase.contains("or")
-                or string.tolowercase.contains("the") or string.tolowercase.contains("for")):
+    for word in s.split():
+        word = word.lower()
+        if ('and' in word or 'or' in word
+                or 'the' in word or 'for' in word or 'in' in word):
             count += 1
 
     return count
 
 def func10(s):
-    return s.length
+    return len(s)
 
 def get_data():
     with open('Combined_News_DJIA.csv') as csv_file:
