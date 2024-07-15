@@ -2,6 +2,7 @@ import csv
 
 import numpy as np
 from sklearn.neural_network import MLPClassifier
+from tqdm import tqdm
 
 def func1(s):
     return len(s.split()) / (len(s) - s.count(' '))
@@ -78,7 +79,7 @@ def get_data():
             func6, func7, func8, func9, func10
         ]
 
-        for line in csv_reader:
+        for line in tqdm(list(csv_reader)):
             targets.append(int(line[1]))
             inp_row = []
             headlines = line[2:]
@@ -96,7 +97,7 @@ def get_data():
 
 def main():
     inputs, targets = get_data()
-    classifier = MLPClassifier(random_state=0, verbose=0)
+    classifier = MLPClassifier(random_state=0, verbose=1)
     test_size = 10
     classifier.fit(inputs[test_size:], targets[test_size:])
     predictions = classifier.predict(inputs[:test_size])
