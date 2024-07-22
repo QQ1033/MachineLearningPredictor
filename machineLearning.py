@@ -126,27 +126,14 @@ def main():
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(
         inputs, targets, test_size=0.10, random_state=0,
     )
-    test_size = 200
-    classifier = RandomForestClassifier(random_state= 1, n_estimators= 200)#MLPClassifier(random_state=1, hidden_layer_sizes=(25, 80, 50), max_iter=400, learning_rate_init=0.001, verbose=1)
-    classifier.fit(inputs[test_size:], targets[test_size:])
-    predictions = classifier.predict(inputs[:test_size])
-    accuracy = 0
-    count = 0
-    while (count < test_size):
-        if predictions[count] == targets[count]:
-            accuracy = accuracy + 1
-
-        count = count + 1
-    accuracy = accuracy / count
-
-
-    print(f'{predictions = }')
-    print(f'{targets[:test_size] = }')
-    print("Total accuracy is ", accuracy * 100, "%")
-    #print(classifier.loss_curve_)
-
-    print(display_accuracy(targets[:test_size] , predictions, labels=['DOW fell', 'DOW rose'], plot_title='Test Performance'))
-
+    classifier = RandomForestClassifier(random_state=1, n_estimators=200, verbose=1)
+    classifier.fit(inputs_train, targets_train)
+    predictions_train = classifier.predict(inputs_train)
+    predictions_test = classifier.predict(inputs_test)
+    print(f'Train accuracy is {(predictions_train == targets_train).mean() * 100:.4f}%')
+    print(f'Test accuracy is {(predictions_test == targets_test).mean() * 100:.4f}%')
+    display_accuracy(targets_train, predictions_train, labels=['DOW fell', 'DOW rose'], plot_title='Train Performance')
+    display_accuracy(targets_test, predictions_test, labels=['DOW fell', 'DOW rose'], plot_title='Test Performance')
 
 if __name__ == '__main__':
     main()
