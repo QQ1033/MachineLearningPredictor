@@ -90,15 +90,9 @@ def get_data():
             inp_row = []
             headlines = line[2:]
             for headline in headlines:
-                if ("b'" in headline):
-                    headline = headline.replace("b'",'')
-
-                if ('b"' in headline):
-                    headline = headline.replace('b"', '')
-                if ('"' in headline):
-                    headline = headline.replace('"', '')
-
-
+                headline = headline[2: -1]
+                headline = headline.replace(r'\"', '"')
+                headline = headline.replace(r"\'", "'")
                 for func in feature_funcs:
                     inp_row.append(func(headline))
             # A few rows are short of having the necessary number of headlines;
@@ -110,8 +104,6 @@ def get_data():
     targets = np.array(targets)
     return inputs, targets
 
-
-
 def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot_title='Default title'):
     cm = confusion_matrix(targets, predictions)
     cm_display = ConfusionMatrixDisplay(cm, display_labels=labels)
@@ -119,7 +111,6 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
     cm_display.plot(ax=ax)
     ax.set_title(plot_title)
     plt.show()
-
 
 def main():
     inputs, targets = get_data()
