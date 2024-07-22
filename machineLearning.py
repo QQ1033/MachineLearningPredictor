@@ -2,6 +2,12 @@ import csv
 
 import numpy as np
 from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+from sklearn.ensemble import RandomForestClassifier
+import matplotlib.pyplot as plt
+
+
 from tqdm import tqdm
 
 def func1(s):
@@ -84,6 +90,15 @@ def get_data():
             inp_row = []
             headlines = line[2:]
             for headline in headlines:
+                if ("b'" in headline):
+                    headline = headline.replace("b'",'')
+
+                if ('b"' in headline):
+                    headline = headline.replace('b"', '')
+                if ('"' in headline):
+                    headline = headline.replace('"', '')
+
+
                 for func in feature_funcs:
                     inp_row.append(func(headline))
             # A few rows are short of having the necessary number of headlines;
@@ -95,14 +110,43 @@ def get_data():
     targets = np.array(targets)
     return inputs, targets
 
+
+
+def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot_title='Default title'):
+    cm = confusion_matrix(targets, predictions)
+    cm_display = ConfusionMatrixDisplay(cm, display_labels=labels)
+    fig, ax = plt.subplots()
+    cm_display.plot(ax=ax)
+    ax.set_title(plot_title)
+    plt.show()
+
+
 def main():
     inputs, targets = get_data()
-    classifier = MLPClassifier(random_state=0, verbose=1)
-    test_size = 10
+    inputs_train, inputs_test, targets_train, targets_test = train_test_split(
+        inputs, targets, test_size=0.10, random_state=0,
+    )
+    test_size = 200
+    classifier = RandomForestClassifier(random_state= 1, n_estimators= 200)#MLPClassifier(random_state=1, hidden_layer_sizes=(25, 80, 50), max_iter=400, learning_rate_init=0.001, verbose=1)
     classifier.fit(inputs[test_size:], targets[test_size:])
     predictions = classifier.predict(inputs[:test_size])
+    accuracy = 0
+    count = 0
+    while (count < test_size):
+        if predictions[count] == targets[count]:
+            accuracy = accuracy + 1
+
+        count = count + 1
+    accuracy = accuracy / count
+
+
     print(f'{predictions = }')
     print(f'{targets[:test_size] = }')
+    print("Total accuracy is ", accuracy * 100, "%")
+    #print(classifier.loss_curve_)
+
+    print(display_accuracy(targets[:test_size] , predictions, labels=['DOW fell', 'DOW rose'], plot_title='Test Performance'))
+
 
 if __name__ == '__main__':
     main()
