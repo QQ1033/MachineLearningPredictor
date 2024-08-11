@@ -1,16 +1,12 @@
 import csv
 
 import numpy as np
-from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
 from sentence_transformers import SentenceTransformer
-
-
-
-
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 def func1(s):
     return len(s.split()) / (len(s) - s.count(' '))
@@ -18,7 +14,7 @@ def func1(s):
 def func2(s):
     count = 0
     for char in s:
-        if (s.upper()):
+        if s.upper():
             count += 1
 
     return count
@@ -98,16 +94,15 @@ def get_data(preprocess=False):
 
                 headline = headline[0: -1]
                 headline = headline.replace("b'", "")
-                headline = headline.replace('b"', '');
-                #headline = headline.replace(r'\"', '"')
-                headline = headline.replace("\\", "");
+                headline = headline.replace('b"', '')
+                # headline = headline.replace(r'\"', '"')
+                headline = headline.replace("\\", "")
                 sentences = [headline]
                 string_rows.append(sentences)
 
-
-                #model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-                #embeddings = model.encode(sentences)
-                #inp_row.append(embeddings)
+                # model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
+                # embeddings = model.encode(sentences)
+                # inp_row.append(embeddings)
                 # if we are prprocessing then do this, otherwise don't
                 if (preprocess):
                     for func in feature_funcs:
@@ -119,21 +114,13 @@ def get_data(preprocess=False):
 
             edited_string_rows.append(string_rows)
 
-    if(preprocess):
+    if preprocess:
         return inputs, targets
     else:
         return edited_string_rows
 
-
-
-
-
-
-            # A few rows are short of having the necessary number of headlines;
-            # append zeros if this row is short
-
-
-
+    # A few rows are short of having the necessary number of headlines;
+    # append zeros if this row is short
 
 def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot_title='Default title'):
     cm = confusion_matrix(targets, predictions)
@@ -142,7 +129,6 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
     cm_display.plot(ax=ax)
     ax.set_title(plot_title)
     plt.show()
-
 
 def deep_model():
     deep_data = []
@@ -156,11 +142,7 @@ def deep_model():
             deep_row.append(embeddings)
         deep_data.append(deep_row)
 
-
-    return(deep_data)
-
-
-
+    return deep_data
 
 def shallow_model():
     inputs, targets = get_data()
@@ -179,7 +161,3 @@ def shallow_model():
 if __name__ == '__main__':
     # shallow_model()
     deep_model()
-
-
-
-
