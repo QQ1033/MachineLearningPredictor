@@ -5,7 +5,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from sklearn.ensemble import RandomForestClassifier
-import matplotlib.pyplot as plt
+from sentence_transformers import SentenceTransformer
+
+
 
 
 from tqdm import tqdm
@@ -72,7 +74,7 @@ def func9(s):
 def func10(s):
     return len(s)
 
-def get_data():
+def get_data(preprocess=False):
     with open('Combined_News_DJIA.csv') as csv_file:
         csv_reader = csv.reader(csv_file)
 
@@ -80,6 +82,8 @@ def get_data():
         num_headlines = len(next(csv_reader)) - 2
         inputs = []
         targets = []
+        edited_string_rows = []
+
         feature_funcs = [
             func1, func2, func3, func4, func5,
             func6, func7, func8, func9, func10
@@ -89,20 +93,47 @@ def get_data():
             targets.append(int(line[1]))
             inp_row = []
             headlines = line[2:]
+            string_rows = []
             for headline in headlines:
-                headline = headline[2: -1]
-                headline = headline.replace(r'\"', '"')
-                headline = headline.replace(r"\'", "'")
-                for func in feature_funcs:
-                    inp_row.append(func(headline))
+
+                headline = headline[0: -1]
+                headline = headline.replace("b'", "")
+                headline = headline.replace('b"', '');
+                #headline = headline.replace(r'\"', '"')
+                headline = headline.replace("\\", "");
+                sentences = [headline]
+                string_rows.append(sentences)
+
+
+                #model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
+                #embeddings = model.encode(sentences)
+                #inp_row.append(embeddings)
+                # if we are prprocessing then do this, otherwise don't
+                if (preprocess):
+                    for func in feature_funcs:
+                        inp_row.append(func(headline))
+                    inp_row += (num_headlines - len(headlines)) * 10 * [0]
+                    inputs.append(inp_row)
+                    inputs = np.array(inputs)
+                    targets = np.array(targets)
+
+            edited_string_rows.append(string_rows)
+
+    if(preprocess):
+        return inputs, targets
+    else:
+        return edited_string_rows
+
+
+
+
+
+
             # A few rows are short of having the necessary number of headlines;
             # append zeros if this row is short
-            inp_row += (num_headlines - len(headlines)) * len(feature_funcs) * [0]
-            inputs.append(inp_row)
 
-    inputs = np.array(inputs)
-    targets = np.array(targets)
-    return inputs, targets
+
+
 
 def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot_title='Default title'):
     cm = confusion_matrix(targets, predictions)
@@ -112,7 +143,26 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
     ax.set_title(plot_title)
     plt.show()
 
-def main():
+
+def deep_model():
+    deep_data = []
+
+    model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
+    sentences = get_data(False)
+    for headline_row in sentences:
+        deep_row = []
+        for headline in headline_row:
+            embeddings = model.encode(headline)
+            deep_row.append(embeddings)
+        deep_data.append(deep_row)
+
+
+    return(deep_data)
+
+
+
+
+def shallow_model():
     inputs, targets = get_data()
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(
         inputs, targets, test_size=0.10, random_state=0,
@@ -127,4 +177,9 @@ def main():
     display_accuracy(targets_test, predictions_test, labels=['DOW fell', 'DOW rose'], plot_title='Test Performance')
 
 if __name__ == '__main__':
-    main()
+    # shallow_model()
+    deep_model()
+
+
+
+
