@@ -78,7 +78,7 @@ def get_data(preprocess=False):
         num_headlines = len(next(csv_reader)) - 2
         inputs = []
         targets = []
-        edited_string_rows = []
+        all_string_rows = []
 
         feature_funcs = [
             func1, func2, func3, func4, func5,
@@ -95,16 +95,10 @@ def get_data(preprocess=False):
                 headline = headline[0: -1]
                 headline = headline.replace("b'", "")
                 headline = headline.replace('b"', '')
-                # headline = headline.replace(r'\"', '"')
                 headline = headline.replace("\\", "")
-                sentences = [headline]
-                string_rows.append(sentences)
+                string_rows.append(headline)
 
-                # model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-                # embeddings = model.encode(sentences)
-                # inp_row.append(embeddings)
-                # if we are prprocessing then do this, otherwise don't
-                if (preprocess):
+                if preprocess:
                     for func in feature_funcs:
                         inp_row.append(func(headline))
                     inp_row += (num_headlines - len(headlines)) * 10 * [0]
@@ -112,12 +106,12 @@ def get_data(preprocess=False):
                     inputs = np.array(inputs)
                     targets = np.array(targets)
 
-            edited_string_rows.append(string_rows)
+            all_string_rows.append(string_rows)
 
     if preprocess:
         return inputs, targets
     else:
-        return edited_string_rows
+        return all_string_rows, targets
 
     # A few rows are short of having the necessary number of headlines;
     # append zeros if this row is short
@@ -130,19 +124,18 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
     ax.set_title(plot_title)
     plt.show()
 
-def deep_model():
+def deep_model(limit_num_sentences=200):
     deep_data = []
 
     model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-    sentences = get_data(False)
-    for headline_row in sentences:
-        deep_row = []
-        for headline in headline_row:
-            embeddings = model.encode(headline)
-            deep_row.append(embeddings)
-        deep_data.append(deep_row)
-
-    return deep_data
+    sentences, targets = get_data(False)
+    sentences = sentences[: limit_num_sentences]
+    targets = targets[: limit_num_sentences]
+    for headline_row in tqdm(sentences):
+        deep_data.append(model.encode(headline_row))
+    inputs = np.array(deep_data)
+    breakpoint()
+    return inputs
 
 def shallow_model():
     inputs, targets = get_data()
