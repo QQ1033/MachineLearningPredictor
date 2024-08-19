@@ -126,7 +126,8 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
 
 def deep_model(limit_num_sentences=200):
     deep_data = []
-
+    targets = []
+    predictions = []
     model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
     sentences, targets = get_data(False)
     sentences = sentences[: limit_num_sentences]
@@ -134,9 +135,28 @@ def deep_model(limit_num_sentences=200):
     for headline_row in tqdm(sentences):
         deep_data.append(model.encode(headline_row))
     inputs = np.array(deep_data)
-    breakpoint()
-    return inputs
+    inputs = inputs.sum(axis=1)
+    inputs_train, inputs_test, targets_train, targets_test = train_test_split(
+        inputs, targets, test_size=0.10, random_state=0,
+    )
+    classifier = RandomForestClassifier(random_state=0)
+    classifier.fit(inputs_train, targets_train)
+    predictions_train = classifier.predict(inputs_train)
+    predictions_test = classifier.predict(inputs_test)
 
+
+
+    print(f'Test accuracy is {(predictions_test == targets_test).mean() * 100:.4f}%')
+    print(f'Train accuracy is {(predictions_train == targets_train).mean() * 100:.4f}%')
+    display_accuracy(targets_test, predictions_test, labels=['DOW fell', 'DOW rose'], plot_title='Test Performance')
+    display_accuracy(targets_train, predictions_train, labels=['DOW fell', 'DOW rose'], plot_title='Train Performance')
+
+
+def sum2D(input):
+    my_sum = 0
+    for row in input:
+        my_sum += sum(row)
+    return my_sum
 def shallow_model():
     inputs, targets = get_data()
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(
@@ -149,7 +169,7 @@ def shallow_model():
     print(f'Train accuracy is {(predictions_train == targets_train).mean() * 100:.4f}%')
     print(f'Test accuracy is {(predictions_test == targets_test).mean() * 100:.4f}%')
     display_accuracy(targets_train, predictions_train, labels=['DOW fell', 'DOW rose'], plot_title='Train Performance')
-    display_accuracy(targets_test, predictions_test, labels=['DOW fell', 'DOW rose'], plot_title='Test Performance')
+
 
 if __name__ == '__main__':
     # shallow_model()
