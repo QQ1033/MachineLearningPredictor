@@ -139,11 +139,13 @@ def deep_model(limit_num_sentences=5):
             deep_data.append(model.encode(headline_row))
         inputs = np.array(deep_data)
         np.savez(save_file, inputs=inputs, targets=targets)
-        inputs = inputs.sum(axis=1)
+        print(f'Saved {save_file}')
     else:
         npz = np.load(save_file)
         inputs = npz['inputs']
         targets = npz['targets']
+        print(f'Successfully loaded {save_file}')
+    inputs = inputs.sum(axis=1)
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(
         inputs, targets, test_size=0.10, random_state=0,
     )
