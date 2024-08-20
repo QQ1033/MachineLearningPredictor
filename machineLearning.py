@@ -1,4 +1,5 @@
 import csv
+from pathlib import Path
 
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -124,27 +125,32 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
     ax.set_title(plot_title)
     plt.show()
 
-def deep_model(limit_num_sentences=200):
-    deep_data = []
-    targets = []
-    predictions = []
-    model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-    sentences, targets = get_data(False)
-    sentences = sentences[: limit_num_sentences]
-    targets = targets[: limit_num_sentences]
-    for headline_row in tqdm(sentences):
-        deep_data.append(model.encode(headline_row))
-    inputs = np.array(deep_data)
-    inputs = inputs.sum(axis=1)
+def deep_model(limit_num_sentences=1989):
+    save_file = Path(f'sentence_embeddings_{limit_num_sentences}.npy')
+    if not save_file.exists():
+        deep_data = []
+        targets = []
+        predictions = []
+        model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
+        sentences, targets = get_data(False)
+        sentences = sentences[: limit_num_sentences]
+        targets = targets[: limit_num_sentences]
+        for headline_row in tqdm(sentences):
+            deep_data.append(model.encode(headline_row))
+        inputs = np.array(deep_data)
+        np.savez(save_file, inputs=inputs, targets=targets)
+        inputs = inputs.sum(axis=1)
+    else:
+        npz = np.load(save_file)
+        inputs = npz['inputs']
+        targets = npz['targets']
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(
         inputs, targets, test_size=0.10, random_state=0,
     )
-    classifier = RandomForestClassifier(random_state=0)
+    classifier = RandomForestClassifier(random_state=0, n_estimators=25)
     classifier.fit(inputs_train, targets_train)
     predictions_train = classifier.predict(inputs_train)
     predictions_test = classifier.predict(inputs_test)
-
-
 
     print(f'Test accuracy is {(predictions_test == targets_test).mean() * 100:.4f}%')
     print(f'Train accuracy is {(predictions_train == targets_train).mean() * 100:.4f}%')
