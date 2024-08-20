@@ -125,8 +125,8 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
     ax.set_title(plot_title)
     plt.show()
 
-def deep_model(limit_num_sentences=1989):
-    save_file = Path(f'sentence_embeddings_{limit_num_sentences}.npy')
+def deep_model(limit_num_sentences=5):
+    save_file = Path(f'sentence_embeddings_{limit_num_sentences}.npz')
     if not save_file.exists():
         deep_data = []
         targets = []
