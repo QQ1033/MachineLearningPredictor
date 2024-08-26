@@ -71,7 +71,7 @@ def func9(s):
 def func10(s):
     return len(s)
 
-def get_data(preprocess=False):
+def get_data(preprocess=False, connect=False):
     with open('Combined_News_DJIA.csv') as csv_file:
         csv_reader = csv.reader(csv_file)
 
@@ -91,23 +91,29 @@ def get_data(preprocess=False):
             inp_row = []
             headlines = line[2:]
             string_rows = []
-            for headline in headlines:
 
-                headline = headline[0: -1]
+            for headline in headlines:
+                #headline = headline[0: -1]
                 headline = headline.replace("b'", "")
                 headline = headline.replace('b"', '')
                 headline = headline.replace("\\", "")
-                string_rows.append(headline)
+                if (not connect):
+                    string_rows.append(headline)
+            if (connect):
+                all_string_rows.append(headlines)
 
-                if preprocess:
-                    for func in feature_funcs:
-                        inp_row.append(func(headline))
-                    inp_row += (num_headlines - len(headlines)) * 10 * [0]
-                    inputs.append(inp_row)
-                    inputs = np.array(inputs)
-                    targets = np.array(targets)
+            if preprocess:
+                for func in feature_funcs:
+                    inp_row.append(func(headline))
+                inp_row += (num_headlines - len(headlines)) * 10 * [0]
+                inputs.append(inp_row)
+                inputs = np.array(inputs)
+                targets = np.array(targets)
 
-            all_string_rows.append(string_rows)
+            if (not connect):
+                all_string_rows.append(string_rows)
+
+
 
     if preprocess:
         return inputs, targets
@@ -125,14 +131,20 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
     ax.set_title(plot_title)
     plt.show()
 
-def deep_model(limit_num_sentences=5):
-    save_file = Path(f'sentence_embeddings_{limit_num_sentences}.npz')
+def deep_model(limit_num_sentences=1001, connect=True):
+
+
+    save_file = Path(f'sentence_embeddings_{limit_num_sentences}_connect{connect}.npz')
     if not save_file.exists():
         deep_data = []
         targets = []
         predictions = []
         model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-        sentences, targets = get_data(False)
+        if (connect):
+            sentence, targets = get_data(False, True)
+        else:
+            sentences, targets = get_data(False, False)
+
         sentences = sentences[: limit_num_sentences]
         targets = targets[: limit_num_sentences]
         for headline_row in tqdm(sentences):
@@ -145,11 +157,11 @@ def deep_model(limit_num_sentences=5):
         inputs = npz['inputs']
         targets = npz['targets']
         print(f'Successfully loaded {save_file}')
-    inputs = inputs.sum(axis=1)
+    inputs = inputs.max(axis=1)
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(
         inputs, targets, test_size=0.10, random_state=0,
     )
-    classifier = RandomForestClassifier(random_state=0, n_estimators=25)
+    classifier = RandomForestClassifier(random_state=0, n_estimators=3)
     classifier.fit(inputs_train, targets_train)
     predictions_train = classifier.predict(inputs_train)
     predictions_test = classifier.predict(inputs_test)
