@@ -79,49 +79,36 @@ def get_data(preprocess=False, connect=False):
         num_headlines = len(next(csv_reader)) - 2
         inputs = []
         targets = []
-        all_string_rows = []
 
-        feature_funcs = [
-            func1, func2, func3, func4, func5,
-            func6, func7, func8, func9, func10
-        ]
-
-        for line in tqdm(list(csv_reader)):
+        for line in tqdm(list(csv_reader), desc='Reading CSV'):
             targets.append(int(line[1]))
             inp_row = []
             headlines = line[2:]
-            string_rows = []
 
             for headline in headlines:
-                #headline = headline[0: -1]
+                headline = headline[0: -1] if headline.endswith(('"', "'")) else headline
                 headline = headline.replace("b'", "")
                 headline = headline.replace('b"', '')
                 headline = headline.replace("\\", "")
-                if (not connect):
-                    string_rows.append(headline)
-            if (connect):
-                all_string_rows.append(headlines)
+                inp_row.append(headline)
+            inputs.append(' '.join(inp_row) if connect else inp_row)
 
             if preprocess:
+                feature_funcs = [
+                    func1, func2, func3, func4, func5,
+                    func6, func7, func8, func9, func10
+                ]
                 for func in feature_funcs:
                     inp_row.append(func(headline))
+                # A few rows are short of having the necessary number of headlines;
+                # append zeros if this row is short
                 inp_row += (num_headlines - len(headlines)) * 10 * [0]
                 inputs.append(inp_row)
                 inputs = np.array(inputs)
                 targets = np.array(targets)
 
-            if (not connect):
-                all_string_rows.append(string_rows)
+    return inputs, targets
 
-
-
-    if preprocess:
-        return inputs, targets
-    else:
-        return all_string_rows, targets
-
-    # A few rows are short of having the necessary number of headlines;
-    # append zeros if this row is short
 
 def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot_title='Default title'):
     cm = confusion_matrix(targets, predictions)
@@ -132,22 +119,16 @@ def display_accuracy(targets, predictions, labels=['DOW fell', 'DOW rose'], plot
     plt.show()
 
 def deep_model(limit_num_sentences=1001, connect=True):
-
-
     save_file = Path(f'sentence_embeddings_{limit_num_sentences}_connect{connect}.npz')
     if not save_file.exists():
         deep_data = []
         targets = []
-        predictions = []
         model = SentenceTransformer('sentence-transformers/paraphrase-MiniLM-L6-v2')
-        if (connect):
-            sentence, targets = get_data(False, True)
-        else:
-            sentences, targets = get_data(False, False)
+        sentences, targets = get_data(False, connect)
 
         sentences = sentences[: limit_num_sentences]
         targets = targets[: limit_num_sentences]
-        for headline_row in tqdm(sentences):
+        for headline_row in tqdm(sentences, desc='Converting strings to embeddings'):
             deep_data.append(model.encode(headline_row))
         inputs = np.array(deep_data)
         np.savez(save_file, inputs=inputs, targets=targets)
@@ -157,7 +138,8 @@ def deep_model(limit_num_sentences=1001, connect=True):
         inputs = npz['inputs']
         targets = npz['targets']
         print(f'Successfully loaded {save_file}')
-    inputs = inputs.max(axis=1)
+    if not connect:
+        inputs = inputs.max(axis=1)
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(
         inputs, targets, test_size=0.10, random_state=0,
     )
@@ -177,6 +159,7 @@ def sum2D(input):
     for row in input:
         my_sum += sum(row)
     return my_sum
+
 def shallow_model():
     inputs, targets = get_data()
     inputs_train, inputs_test, targets_train, targets_test = train_test_split(
@@ -189,7 +172,6 @@ def shallow_model():
     print(f'Train accuracy is {(predictions_train == targets_train).mean() * 100:.4f}%')
     print(f'Test accuracy is {(predictions_test == targets_test).mean() * 100:.4f}%')
     display_accuracy(targets_train, predictions_train, labels=['DOW fell', 'DOW rose'], plot_title='Train Performance')
-
 
 if __name__ == '__main__':
     # shallow_model()
