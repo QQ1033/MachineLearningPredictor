@@ -25,11 +25,12 @@ moved test accuracy meaningfully above the feature-function baseline.
 
 ## Results
 
-| Approach                          | Test accuracy |
-| --------------------------------- |  |
+
+| Approach | Test accuracy |
+| --- | --- |
 | Hand-engineered feature functions | ~55% (≈ chance) |
-| Sentence embeddings +  random forest (unregularized)| 44% — severe overfitting (100% train)|
-| Sentence embeddings + random forest (regularized)| ~48% — at chance|
+| Sentence embeddings + random forest (unregularized) | 44% — severe overfitting (100% train) |
+| Sentence embeddings + random forest (regularized) | ~48% — at chance |
 
 After systematic regularization (limiting tree depth and leaf size, increasing data and tree count), the model stopped overfitting but did not exceed chance on held-out data. This suggests the daily headlines in this dataset carry no reliable signal for next-day DJIA direction — consistent with the efficient-market hypothesis.
 
