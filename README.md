@@ -28,12 +28,10 @@ moved test accuracy meaningfully above the feature-function baseline.
 | Approach                          | Test accuracy |
 | --------------------------------- |  |
 | Hand-engineered feature functions | ~55% (≈ chance) |
-| Sentence embeddings + random forest | (under evaluation)|
+| Sentence embeddings +  random forest (unregularized)| 44% — severe overfitting (100% train)|
+| Sentence embeddings + random forest (regularized)| ~48% — at chance|
 
-> Note on the number: stock direction prediction is genuinely hard, and with a
-> small test split the accuracy varies between runs. Report the figure you
-> actually get, and consider raising `n_estimators` and `limit_num_sentences`
-> in `run_model()` for a more stable estimate.
+After systematic regularization (limiting tree depth and leaf size, increasing data and tree count), the model stopped overfitting but did not exceed chance on held-out data. This suggests the daily headlines in this dataset carry no reliable signal for next-day DJIA direction — consistent with the efficient-market hypothesis.
 
 ## Setup
 

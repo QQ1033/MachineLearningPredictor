@@ -106,7 +106,12 @@ def run_model(limit_num_sentences=1001, connect=True, n_estimators=100):
         inputs, targets, test_size=0.10, random_state=0,
     )
 
-    classifier = RandomForestClassifier(random_state=0, n_estimators=n_estimators)
+    classifier = RandomForestClassifier(
+        random_state=0,
+        n_estimators=300,
+        max_depth=3,
+        min_samples_leaf=50,
+    )
     classifier.fit(inputs_train, targets_train)
 
     predictions_train = classifier.predict(inputs_train)
@@ -122,4 +127,4 @@ def run_model(limit_num_sentences=1001, connect=True, n_estimators=100):
 
 
 if __name__ == '__main__':
-    run_model()
+    run_model(limit_num_sentences=1989, n_estimators=300)
